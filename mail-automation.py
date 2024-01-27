@@ -11,4 +11,61 @@ EMAIL_SERVER = "smtp.gmail.com"
 
 #Load the environment variables 
 
-c
+current_dir = Path(__file__).resolve().parent if "_file_" in locals() else Path.cwd()
+envars = current_dir / ".env"
+load_dotenv(envars)
+
+sender_email = os.getenv("EMAIL")
+password_email = os.getenv("PASSWORD")
+
+def send_email(subject, receiver_email,name, due_date, invoice_no, amount):
+    msg= EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = formataddr(("Khushi Sidana", f"{sender_email}"))
+    msg["To"] = receiver_email
+    # msg["BCC"] = sender_email
+
+    msg.set_content(
+        f"""\
+        Hi {name},
+        I hope you are well.
+        I just wanted to drop you a quick note to remind you that {amount} USD in respect of our invoice {invoice_no} is due for payment on {due_date}
+        I would be really grateful if you could confirm that everything is on track for payment.
+        Best regards
+        Khushi Sidana
+        """
+        )
+
+
+#HTML version 
+    msg.add_alternative(
+        f"""\
+        <html>
+        <body>
+        <p> Hi {name}, </p>
+        <p>I hope you are doing well </p>
+        <p> I just wanted to drop you a quick reminder that your <strong> {amount} USD </strong> in respect to your invoice {invoice_no} id due for full payment on the <strong>{due_date}</strong?</p>
+        <p> I would be grateful if you could confirm that everything is on track for the payment. </p>
+        <p> Best Regards </p>
+        <p> Khushi Sidana </p>
+        </body>
+        </html>
+        """, 
+        subtype="html"
+    )
+
+    with smtplib.SMTP(EMAIL_SERVER, PORT) as server: 
+        server.starttls()
+        server.login(sender_email,password_email)
+        server.sendmail(sender_email,receiver_email,msg.as_string())
+
+if __name__ == "__main__":
+        send_email(
+            subject="Invoice Reminder",
+            name="John Doe",
+            receiver_email="karandoshi95@gmail.com",
+            due_date= "11, Feb 2024",
+            invoice_no = "INV-21-12-009",
+            amount=5
+
+    )
